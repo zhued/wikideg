@@ -1,11 +1,11 @@
 {
-  "name": "wikicrawl",
+  "name": "wikideg",
   "version": "0.0.1",
-  "description": "webcrawler on wikipedia",
+  "description": "degrees of separation on wikipedia",
   "main": "crawler.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zhued/wikicrawl.git"
+    "url": "git+https://github.com/zhued/wikideg.git"
   },
   "author": {
     "name": "Edward Zhu",

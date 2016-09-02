@@ -3,11 +3,13 @@ var cheerio = require('cheerio');
 var URL = require('url-parse');
 
 var START_URL = "http://www.wikipedia.org/wiki/Python_(programming_language)";
+var CURRENT = '/wiki/Python_(programming_language)'
 // var START_URL = "http://www.edwardzhu.me";
 var SEARCH_WORD = "asdfasder";
 var MAX_PAGES_TO_VISIT = 10;
 
 var pagesVisited = {};
+var pageRoutes = {};
 var numPagesVisited = 0;
 var pagesToVisit = [];
 var url = new URL(START_URL);
@@ -33,55 +35,64 @@ function crawl() {
 
 
 function visitPage(url, callback) {
-  // Add page to our set
-  pagesVisited[url] = true;
-  numPagesVisited++;
+    // Add page to our set
+    pagesVisited[url] = true;
+    numPagesVisited++;
 
-  // Make the request
-  console.log("visit = " + url);
-  console.log("");
-  request(url, function(error, response, body) {
-     // Check status code (200 is HTTP OK)
-     if(response.statusCode !== 200) {
-       console.log("Status code: " + response.statusCode);
-       callback();
-       return;
-     }
-     // Parse the document body
-     var $ = cheerio.load(body);
-    //  get page title
-     console.log("Page title:  " + $('title').text());
-     parseHTMLBody($);
+    // Make the request
+    console.log("visit = " + url);
+    console.log("");
+    request(url, function(error, response, body) {
+       // Check status code (200 is HTTP OK)
+       if(response.statusCode !== 200) {
+           console.log("Status code: " + response.statusCode);
+           callback();
+           return;
+       }
+       // Parse the document body
+       var $ = cheerio.load(body);
+       //  get page title
+       console.log("Page title:  " + $('title').text());
+       parseHTMLBody($);
 
-     var isWordFound = searchForWord($, SEARCH_WORD);
-     if(isWordFound) {
-       console.log('Word ' + SEARCH_WORD + ' found at page ' + url);
-     }
+       var isWordFound = searchForWord($, SEARCH_WORD);
+       if(isWordFound) {
+         console.log('Word ' + SEARCH_WORD + ' found at page ' + url);
+       }
 
-    //  collectInternalLinks($);
+     //  collectInternalLinks($);
      // In this short program, our callback is just calling crawl()
-    //  callback();
-  });
+     //  callback();
+    });
 }
 
 function parseHTMLBody($) {
-  // var relativeLinks = $("a[href^='http']");
-  var relativeLinks = $("a[href^='/']");
-  var link_count = 0;
-  var valid_links = [];
-  // console.log(relativeLinks[0].attribs.href);
-  relativeLinks.each(function() {
-      if ($(this).attr('href').substring(0,6) == "/wiki/" &&
-          $(this).attr('href').substring(6).indexOf(':') < 0 ) {
-        // console.log($(this).attr('href'));
-        pagesToVisit.push($(this).attr('href'));
-        link_count++;
-      }
-      //
-  });
-  console.log(pagesToVisit);
-  console.log('total links:' + link_count);
+    // var relativeLinks = $("a[href^='http']");
+    var relativeLinks = $("a[href^='/']");
+    var link_count = 0;
+    var valid_links = [];
+    // console.log(relativeLinks[0].attribs.href);
+    relativeLinks.each(function() {
+        if ($(this).attr('href').substring(0,6) == "/wiki/" &&
+            $(this).attr('href').substring(6).indexOf(':') < 0 ) {
+
+            if ( $(this).attr('href') in pageRoutes) {
+                // do nothing
+            } else {
+              pageRoutes[$(this).attr('href')] = [$(this).attr('href')];
+            }
+
+
+            link_count++;
+        }
+    });
+    // console.log(pageRoutes);
+    console.log('total links:' + link_count);
+    console.log('total keys:' + Object.keys(pageRoutes).length);
 }
+
+
+
 
 function collectInternalLinks($) {
     var relativeLinks = $("a[href^='/']");

@@ -1,2 +1,2 @@
-# wikicrawl
-crawler through wikipedia
+# wikideg
+degrees of separation on wikipedia
