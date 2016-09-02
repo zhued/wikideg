@@ -1,0 +1,21 @@
+{
+  "name": "wikicrawl",
+  "version": "0.0.1",
+  "description": "webcrawler on wikipedia",
+  "main": "crawler.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhued/wikicrawl.git"
+  },
+  "author": {
+    "name": "Edward Zhu",
+    "email": "edward.r.zhu@gmail.com",
+    "url": "edwardzhu.me"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^0.19.0",
+    "url-parse": "^1.0.5",
+    "request": "^2.65.0"
+  }
+}
