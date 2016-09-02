@@ -3,6 +3,7 @@ var cheerio = require('cheerio');
 var URL = require('url-parse');
 
 var START_URL = "http://www.wikipedia.org/wiki/Python_(programming_language)";
+// var START_URL = "http://www.edwardzhu.me";
 var SEARCH_WORD = "asdfasder";
 var MAX_PAGES_TO_VISIT = 10;
 
@@ -41,7 +42,6 @@ function visitPage(url, callback) {
   console.log("");
   request(url, function(error, response, body) {
      // Check status code (200 is HTTP OK)
-    //  console.log("Status code: " + response.statusCode);
      if(response.statusCode !== 200) {
        console.log("Status code: " + response.statusCode);
        callback();
@@ -49,7 +49,9 @@ function visitPage(url, callback) {
      }
      // Parse the document body
      var $ = cheerio.load(body);
-     var htmlbody = parseHTMLBody($);
+    //  get page title
+     console.log("Page title:  " + $('title').text());
+     parseHTMLBody($);
 
      var isWordFound = searchForWord($, SEARCH_WORD);
      if(isWordFound) {
@@ -60,6 +62,25 @@ function visitPage(url, callback) {
      // In this short program, our callback is just calling crawl()
     //  callback();
   });
+}
+
+function parseHTMLBody($) {
+  // var relativeLinks = $("a[href^='http']");
+  var relativeLinks = $("a[href^='/']");
+  var link_count = 0;
+  var valid_links = [];
+  // console.log(relativeLinks[0].attribs.href);
+  relativeLinks.each(function() {
+      if ($(this).attr('href').substring(0,6) == "/wiki/" &&
+          $(this).attr('href').substring(6).indexOf(':') < 0 ) {
+        // console.log($(this).attr('href'));
+        pagesToVisit.push($(this).attr('href'));
+        link_count++;
+      }
+      //
+  });
+  console.log(pagesToVisit);
+  console.log('total links:' + link_count);
 }
 
 function collectInternalLinks($) {
@@ -75,18 +96,6 @@ function collectInternalLinks($) {
         pagesToVisit.push($(this).attr('href'));
     });
 
-}
-
-function parseHTMLBody($) {
-  // var bodyText = $('html > body').text().toLowerCase();
-  var absoluteLinks = $("a[href^='http']");
-  var link_count = 0;
-  absoluteLinks.each(function() {
-      // console.log(absoluteLinks);
-      link_count++;
-      // pagesToVisit.push($(this).attr('href'));
-  });
-  console.log(link_count);
 }
 
 function searchForWord($, word) {
