@@ -2,20 +2,18 @@ var request = require('request');
 var cheerio = require('cheerio');
 var URL = require('url-parse');
 
-var START_URL = "http://www.wikipedia.org/wiki/Python_(programming_language)";
-var CURRENT = '/wiki/Python_(programming_language)'
-// var START_URL = "http://www.edwardzhu.me";
+var CURRENT_URL = '/wiki/Python_Software_Foundation'
+var END_URL = '/wiki/International_Data_Corporation'
 var SEARCH_WORD = "asdfasder";
-var MAX_PAGES_TO_VISIT = 10;
+var MAX_PAGES_TO_VISIT = 100;
 
 var pagesVisited = {};
 var pageRoutes = {};
 var numPagesVisited = 0;
 var pagesToVisit = [];
-var url = new URL(START_URL);
-var baseUrl = url.protocol + "//" + url.hostname;
+var baseUrl = "http://www.wikipedia.org";
 
-pagesToVisit.push(START_URL);
+pagesToVisit.push(CURRENT_URL);
 crawl();
 
 function crawl() {
@@ -23,13 +21,14 @@ function crawl() {
     console.log("Reached max limit of number of pages to visit.");
     return;
   }
-  var nextPage = pagesToVisit.pop();
+  var nextPage = pagesToVisit[0];
+  pagesToVisit.shift();
   if (nextPage in pagesVisited) {
     // We've already visited this page, so repeat the crawl
     crawl();
   } else {
     // New page we haven't visited
-    visitPage(nextPage, crawl);
+    visitPage(baseUrl + nextPage, crawl);
   }
 }
 
@@ -38,6 +37,7 @@ function visitPage(url, callback) {
     // Add page to our set
     pagesVisited[url] = true;
     numPagesVisited++;
+
 
     // Make the request
     console.log("visit = " + url);
@@ -53,13 +53,18 @@ function visitPage(url, callback) {
        var $ = cheerio.load(body);
        //  get page title
        console.log("Page title:  " + $('title').text());
-       parseHTMLBody($);
-
-       var isWordFound = searchForWord($, SEARCH_WORD);
-       if(isWordFound) {
-         console.log('Word ' + SEARCH_WORD + ' found at page ' + url);
+       var parse_result = parseHTMLBody($);
+       if (parse_result) {
+            console.log("Found!");
+       } else {
+            callback();
        }
 
+
+      //  var isWordFound = searchForWord($, SEARCH_WORD);
+      //  if(isWordFound) {
+      //    console.log('Word ' + SEARCH_WORD + ' found at page ' + url);
+      //  }
      //  collectInternalLinks($);
      // In this short program, our callback is just calling crawl()
      //  callback();
@@ -71,17 +76,21 @@ function parseHTMLBody($) {
     var relativeLinks = $("a[href^='/']");
     var link_count = 0;
     var valid_links = [];
+    var found = 0;
     // console.log(relativeLinks[0].attribs.href);
     relativeLinks.each(function() {
         if ($(this).attr('href').substring(0,6) == "/wiki/" &&
             $(this).attr('href').substring(6).indexOf(':') < 0 ) {
 
-            if ( $(this).attr('href') in pageRoutes) {
-                // do nothing
-            } else {
-              pageRoutes[$(this).attr('href')] = [$(this).attr('href')];
+            if ($(this).attr('href') == END_URL) {
+                console.log('found!');
+                found = 1;
             }
 
+            if ( !($(this).attr('href') in pageRoutes)) {
+                pageRoutes[$(this).attr('href')] = [$(this).attr('href')];
+                pagesToVisit.push($(this).attr('href'));
+            }
 
             link_count++;
         }
@@ -89,24 +98,7 @@ function parseHTMLBody($) {
     // console.log(pageRoutes);
     console.log('total links:' + link_count);
     console.log('total keys:' + Object.keys(pageRoutes).length);
-}
-
-
-
-
-function collectInternalLinks($) {
-    var relativeLinks = $("a[href^='/']");
-    console.log("Found " + relativeLinks.length + " relative links on page");
-    relativeLinks.each(function() {
-        pagesToVisit.push(baseUrl + $(this).attr('href'));
-    });
-
-    var absoluteLinks = $("a[href^='http']");
-    console.log("Found " + absoluteLinks.length + " absolute links on page");
-    absoluteLinks.each(function() {
-        pagesToVisit.push($(this).attr('href'));
-    });
-
+    return found;
 }
 
 function searchForWord($, word) {
