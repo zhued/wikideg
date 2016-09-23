@@ -40,8 +40,8 @@ function visitPage(url, callback) {
 
 
     // Make the request
-    console.log("visit = " + url);
     console.log("");
+    console.log("visit = " + url);
     request(url, function(error, response, body) {
        // Check status code (200 is HTTP OK)
        if(response.statusCode !== 200) {
@@ -52,7 +52,6 @@ function visitPage(url, callback) {
        // Parse the document body
        var $ = cheerio.load(body);
        //  get page title
-       console.log("Page title:  " + $('title').text());
        var parse_result = parseHTMLBody($);
        if (parse_result) {
             console.log("Found!");
